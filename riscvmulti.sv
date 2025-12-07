@@ -10,23 +10,21 @@ module riscvmulti (
 
     logic [31:0] instr, PC = 0;
 
-    wire writeBackEn = (state==EXECUTE && !isBranch && !isStore) ||
-			(state==WAIT_DATA) ;// Quando se escreve no banco de registradores?
+	wire writeBackEn = (state==EXECUTE && !isBranch && !isStore) || (state==WAIT_DATA) ;// Quando se escreve no banco de registradores?
     wire [31:0] writeBackData =  (isJAL || isJALR) ? PCplus4   :
 			      isLUI         ? Uimm      :
-			      isAUIPC       ? PCTarget :
+			      isAUIPC       ? PCTarget  :
 			      isLoad        ? LOAD_data :
-			                      ALUResult;// O que se escreve no banco de registradores?
-    wire [31:0] LoadStoreAddress =  rs1 + (isStore ? Simm : Iimm);/// Como se calcula o endereço de memória para loads e stores?
-    assign Address = (state == WAIT_INSTR || state == FETCH_INSTR) ? PC : loadstore_addr ;// Qual o endereço de memória a ser acessado? Alternar entre .text e .data dependendo do estado
+			                      ALUResult; // O que se escreve no banco de registradores?
+	wire [31:0] LoadStoreAddress =  rs1 + (isStore ? Simm : Iimm); /// Como se calcula o endereço de memória para loads e stores?
+	assign Address = (state == WAIT_INSTR || state == FETCH_INSTR) ? PC : loadstore_addr; // Qual o endereço de memória a ser acessado? Alternar entre .text e .data dependendo do estado
     assign MemWrite = (state == STORE); // Em que estado se escreve na memória?
     
 
 	assign WriteData[ 7: 0] = rs2[7:0];
-   assign WriteData[15: 8] = loadstore_addr[0] ? rs2[7:0]  : rs2[15: 8];
-   assign WriteData[23:16] = loadstore_addr[1] ? rs2[7:0]  : rs2[23:16];
-   assign WriteData[31:24] = loadstore_addr[0] ? rs2[7:0]  :
-			     loadstore_addr[1] ? rs2[15:8] : rs2[31:24];
+    assign WriteData[15: 8] = loadstore_addr[0] ? rs2[7:0]  : rs2[15: 8];
+    assign WriteData[23:16] = loadstore_addr[1] ? rs2[7:0]  : rs2[23:16];
+	assign WriteData[31:24] = loadstore_addr[0] ? rs2[7:0]  : loadstore_addr[1] ? rs2[15:8] : rs2[31:24];
 
     // The 10 RISC-V instructions
     wire isALUreg  =  (instr[6:0] == 7'b0110011); // rd <- rs1 OP rs2   
